@@ -1,3 +1,5 @@
 services:
   s3-fake:
     image: "localstack/localstack:s3-latest"
+    ports:
+      - "127.0.0.1:4577:4566"
