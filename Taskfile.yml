@@ -1,5 +1,10 @@
 version: '3'
 
+includes:
+  example:
+    taskfile: example/Taskfile.yml
+    dir: example/
+
 tasks:
   world:
     desc: perform verification + build steps
@@ -9,6 +14,7 @@ tasks:
       - task: lint
       - task: start-test-dependencies
       - task: test
+      - task: example:test
 
   fmt: go fmt ./...
   lint: golangci-lint run ./...

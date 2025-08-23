@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  test:
+    - task: install-xcaddy
+    - task: build
+  install-xcaddy: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+  clean: rm -rf build/
+  build:
+    deps: [ clean ]
+    cmds:
+      - xcaddy build --output build/caddy
