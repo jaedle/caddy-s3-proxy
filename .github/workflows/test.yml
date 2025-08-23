@@ -1,16 +1,11 @@
 name: Tests
 
-env:
-  IMAGE_NAME: mirror-to-gitea
-
 on:
   push:
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
