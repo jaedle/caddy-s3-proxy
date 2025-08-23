@@ -2,6 +2,7 @@ version: '3'
 
 tasks:
   world:
+    desc: perform verification + build steps
     aliases: [ default ]
     cmds:
       - task: fmt
