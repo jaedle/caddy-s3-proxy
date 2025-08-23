@@ -1,3 +1,3 @@
 module github.com/jaedle/caddy-s3-proxy
 
-go 1.22.12
+go 1.25.0
