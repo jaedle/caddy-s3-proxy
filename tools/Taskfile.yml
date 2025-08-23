@@ -1,0 +1,8 @@
+version: '3'
+
+tasks:
+  install:
+    cmd: 'export GOBIN="$PWD/bin" && go install github.com/caddyserver/xcaddy/cmd/xcaddy@${XCADDY_VERSION}'
+    env:
+      XCADDY_VERSION:
+        sh: 'cat go.mod | grep require | grep github.com/caddyserver/xcaddy | head -n1 | rev | cut -d " " -f1 | rev'

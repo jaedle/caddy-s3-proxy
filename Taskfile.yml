@@ -1,6 +1,9 @@
 version: '3'
 
 includes:
+  tools:
+    taskfile: tools/Taskfile.yml
+    dir: tools/
   example:
     taskfile: example/Taskfile.yml
     dir: example/
@@ -12,12 +15,17 @@ tasks:
     cmds:
       - task: fmt
       - task: lint
+      - task: tools:install
       - task: start-test-dependencies
       - task: test
       - task: example:test
+      - task: clean-dependencies
 
   fmt: go fmt ./...
   lint: golangci-lint run ./...
   start-test-dependencies: docker compose up -d --wait
   test: go test ./...
+  clean-dependencies:
+    - go mod tidy
+    - go mod verify
 
