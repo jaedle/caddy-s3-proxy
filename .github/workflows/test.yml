@@ -13,8 +13,5 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - uses: arduino/setup-task@v2
+      - uses: jdx/mise-action@v2
       - run: task world
