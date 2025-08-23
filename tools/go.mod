@@ -2,7 +2,7 @@ module github.com/jaedle/caddy-s3-proxy/tools
 
 go 1.25.0
 
-require github.com/caddyserver/xcaddy v0.4.4
+require github.com/caddyserver/xcaddy v0.4.5
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
