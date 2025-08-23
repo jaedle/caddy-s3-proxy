@@ -7,9 +7,11 @@ tasks:
     cmds:
       - task: fmt
       - task: lint
+      - task: start-test-dependencies
       - task: test
 
   fmt: go fmt ./...
   lint: golangci-lint run ./...
+  start-test-dependencies: docker compose up -d --wait
   test: go test ./...
 

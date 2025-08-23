@@ -7,4 +7,7 @@ Project Motivation:
 
 ## Development
 
-Please make sure to use [mise-en-place](https://mise.jdx.dev/) or install the required tools mentioned in the [mise configuration](./.mise.toml).
+### Prerequisites
+
+- Use [mise-en-place](https://mise.jdx.dev/) or install the required tools mentioned in the [mise configuration](./.mise.toml).
+- Have [docker compose](https://docs.docker.com/compose/) up and running to spin up the test dependencies.

@@ -1,0 +1,3 @@
+services:
+  s3-fake:
+    image: "localstack/localstack:s3-latest"
