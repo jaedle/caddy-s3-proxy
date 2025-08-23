@@ -19,7 +19,7 @@ jobs:
   dependabot:
     needs: [ test ]
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'owner/my_repo'
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'jaedle/caddy-s3-proxy'
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
