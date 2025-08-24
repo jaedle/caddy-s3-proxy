@@ -7,25 +7,58 @@ import (
 
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/jaedle/caddy-s3-proxy/internal"
+	s3test "github.com/jaedle/caddy-s3-proxy/test/s3"
 	"github.com/stretchr/testify/suite"
 )
+
+const anHtmlFilename = "some.html"
+const anotherHtmlFilename = "another.html"
 
 type handlerTestSuite struct {
 	suite.Suite
 	VariableThatShouldStartAtFive int
 
-	handler caddyhttp.MiddlewareHandler
+	handler      caddyhttp.MiddlewareHandler
+	testS3Client s3test.S3Test
+	bucket       string
 }
 
 func (s *handlerTestSuite) SetupTest() {
-	s.handler = internal.New()
+	s.testS3Client = s3test.New()
+	s.bucket = s.testS3Client.ABucket(s.T())
+
+	s.handler = internal.New(internal.Config{
+		S3Client: s.testS3Client.S3Client,
+		Bucket:   s.bucket,
+	})
 }
 
-func (s *handlerTestSuite) TestHandlesRequest() {
-	res := s.do(httptest.NewRequest("GET", "/", nil))
+func (s *handlerTestSuite) TearDownTest() {
+	s.testS3Client.Clean(s.T())
+}
+
+func (s *handlerTestSuite) TestServesFile() {
+	s.givenAnObject(s.obj(anHtmlFilename))
+
+	res := s.do(httptest.NewRequest("GET", "/"+anHtmlFilename, nil))
+
+	s.Equal(http.StatusOK, res.StatusCode)
+}
+
+func (s *handlerTestSuite) givenAnObject(obj s3test.Object) {
+	s.testS3Client.Put(s.T(), obj)
+}
+
+func (s *handlerTestSuite) obj(key string) s3test.Object {
+	return s3test.Obj(s.bucket, key)
+}
+
+func (s *handlerTestSuite) TestNotFound() {
+	s.givenAnObject(s.obj(anHtmlFilename))
+
+	res := s.do(httptest.NewRequest("GET", "/"+anotherHtmlFilename, nil))
 
 	s.Equal(http.StatusNotFound, res.StatusCode)
-
 }
 
 func (s *handlerTestSuite) do(req *http.Request) *http.Response {
