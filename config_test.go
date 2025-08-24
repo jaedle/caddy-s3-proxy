@@ -14,9 +14,11 @@ const defaultValueUsePathStyle = false
 
 func TestParsesConfiguration(t *testing.T) {
 	actual := mustParse(t, `
-aws_endpoint http://localhost:9000
-bucket a-bucket-name
-use_path_style true
+s3_proxy {
+	aws_endpoint http://localhost:9000
+	bucket a-bucket-name
+	use_path_style true
+}
 `)
 
 	assert.Equal(t, "http://localhost:9000", actual.AwsEndpoint)
@@ -26,20 +28,24 @@ use_path_style true
 
 func TestParsesMinimalConfiguration(t *testing.T) {
 	actual := mustParse(t, `
-bucket a-bucket-name
+s3_proxy {
+	bucket a-bucket-name
+}
 `)
 	assert.Equal(t, defaultValueAwsEndpoint, actual.AwsEndpoint)
 	assert.Equal(t, defaultValueUsePathStyle, actual.UsePathStyle)
 }
 
 func TestFailsOnMissingBucket(t *testing.T) {
-	mustFailParsing(t, "", "missing required 'bucket' directive")
+	mustFailParsing(t, `s3_proxy {
+}`, "missing required 'bucket' directive")
 }
 
 func TestFailsOnUnknownDirective(t *testing.T) {
-	mustFailParsing(t, `
-bucket a-bucket-name
-unknown_directive value
+	mustFailParsing(t, `s3_proxy {
+	bucket a-bucket-name
+	unknown_directive value
+}
 `, "found unknown directive 'unknown_directive'")
 }
 

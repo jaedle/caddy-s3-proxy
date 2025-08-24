@@ -3,9 +3,9 @@ version: '3'
 tasks:
   test:
     - task: build
-  install-xcaddy: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
   clean: rm -rf build/
+  # TODO: use caddy version from go.mod
   build:
     deps: [ clean ]
     cmds:
-      - ../tools/bin/xcaddy build --output build/caddy
+      - ../tools/bin/xcaddy build --output build/caddy --with github.com/jaedle/caddy-s3-proxy=../

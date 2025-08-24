@@ -1,7 +1,15 @@
 {
 	debug
+	order s3_proxy last
+	admin off
 }
 
 :2015 {
     log
+
+    s3_proxy {
+        aws_endpoint http://localhost:4577
+        bucket my-bucket
+        use_path_style true
+    }
 }

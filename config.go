@@ -15,7 +15,9 @@ type Configuration struct {
 
 func Parse(d *caddyfile.Dispenser) (*Configuration, error) {
 	var c Configuration
-	for d.Next() {
+	d.NextArg()
+
+	for d.NextBlock(0) {
 		switch d.Val() {
 		case "aws_endpoint":
 			strArg(d, &c.AwsEndpoint)
