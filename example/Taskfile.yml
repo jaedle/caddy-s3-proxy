@@ -8,4 +8,11 @@ tasks:
   build:
     deps: [ clean ]
     cmds:
-      - ../tools/bin/xcaddy build --output build/caddy --with github.com/jaedle/caddy-s3-proxy=../
+      - |
+        ../tools/bin/xcaddy build "$CADDY_VERSION" \
+        --output build/caddy \
+        --with github.com/jaedle/caddy-s3-proxy=../
+    env:
+      CADDY_VERSION:
+        sh: |
+          grep 'github.com/caddyserver/caddy/v2' ../go.mod | awk '{print $2}'
