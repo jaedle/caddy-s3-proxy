@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/caddyserver/caddy/v2"
+	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 
@@ -16,6 +17,7 @@ import (
 
 var (
 	_ caddy.Provisioner           = (*S3Proxy)(nil)
+	_ caddyfile.Unmarshaler       = (*S3Proxy)(nil)
 	_ caddyhttp.MiddlewareHandler = (*S3Proxy)(nil)
 )
 
@@ -32,10 +34,20 @@ func (*S3Proxy) CaddyModule() caddy.ModuleInfo {
 }
 
 func parseCaddyfile(h httpcaddyfile.Helper) (caddyhttp.MiddlewareHandler, error) {
-	if conf, err := Parse(h.Dispenser); err != nil {
+	proxy := new(S3Proxy)
+	if err := proxy.UnmarshalCaddyfile(h.Dispenser); err != nil {
 		return nil, err
 	} else {
-		return &S3Proxy{Config: conf}, nil
+		return proxy, nil
+	}
+}
+
+func (m *S3Proxy) UnmarshalCaddyfile(d *caddyfile.Dispenser) error {
+	if cfg, err := Parse(d); err != nil {
+		return err
+	} else {
+		m.Config = cfg
+		return nil
 	}
 }
 
