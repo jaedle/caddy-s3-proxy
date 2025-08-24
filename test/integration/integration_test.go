@@ -27,6 +27,10 @@ func (s *integrationSuite) SetupSuite() {
 		Bucket: aws.String("example-bucket"),
 	})
 	s.Require().NoError(err)
+
+	s3.NewBucketExistsWaiter(s.s3testClient.S3Client).Wait(s.T().Context(), &s3.HeadBucketInput{
+		Bucket: aws.String("example-bucket"),
+	}, 5*time.Second)
 }
 
 func (s *integrationSuite) TearDown() {
