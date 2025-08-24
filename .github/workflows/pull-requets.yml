@@ -13,7 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
-      - run: task world
+        continue-on-error: true
+      - if: failure()
+        run: ci/export-docker-logs.sh
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: logs/
+
 
   # copied from https://github.com/dependabot/fetch-metadata?tab=readme-ov-file#enabling-auto-merge
   dependabot:
