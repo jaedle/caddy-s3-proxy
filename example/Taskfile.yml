@@ -1,8 +1,6 @@
 version: '3'
 
 tasks:
-  test:
-    - task: build
   clean: rm -rf build/
   # TODO: use caddy version from go.mod
   build:
