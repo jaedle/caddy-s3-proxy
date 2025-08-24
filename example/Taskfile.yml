@@ -14,5 +14,4 @@ tasks:
         --with github.com/jaedle/caddy-s3-proxy=../
     env:
       CADDY_VERSION:
-        sh: |
-          grep 'github.com/caddyserver/caddy/v2' ../go.mod | awk '{print $2}'
+        sh: grep -o 'github.com/caddyserver/caddy/v2 .*$' ../go.mod | cut -d ' ' -f2
