@@ -53,6 +53,12 @@ const startupTimeout = 3 * time.Second
 func (s *integrationSuite) startCaddy() {
 	command := exec.Command("build/caddy", "start")
 	command.Dir = "../../example"
+	command.Env = []string{
+		"AWS_ACCESS_KEY_ID=test",
+		"AWS_SECRET_ACCESS_KEY=test",
+		"AWS_REGION=us-east-1",
+		"AWS_DEFAULT_REGION=us-east-1",
+	}
 	err := command.Run()
 	s.Require().NoError(err)
 
@@ -81,12 +87,6 @@ func (s *integrationSuite) waitForCaddy() {
 func (s *integrationSuite) stopCaddy() {
 	command := exec.Command("build/caddy", "stop")
 	command.Dir = "../../example"
-	command.Env = []string{
-		"AWS_ACCES_KEY_ID=test",
-		"AWS_SECRET_ACCESS_KEY=test",
-		"AWS_REGION=us-east-1",
-		"AWS_DEFAULT_REGION=us-east-1",
-	}
 	err := command.Run()
 	s.Require().NoError(err)
 }
