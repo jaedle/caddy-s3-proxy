@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"io"
 	"net/http"
 	"strings"
 
@@ -27,14 +28,19 @@ type handler struct {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.Handler) error {
-	obj, _ := h.S3Client.GetObject(r.Context(), &s3.GetObjectInput{
+	obj, err := h.S3Client.GetObject(r.Context(), &s3.GetObjectInput{
 		Bucket: aws.String(h.bucket),
 		Key:    aws.String(strings.TrimPrefix(r.URL.Path, "/")),
 	})
-	if obj == nil {
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return nil
 	}
+	if obj == nil {
+		return nil
+	}
 
+	defer func() { _ = obj.Body.Close() }()
+	_, _ = io.Copy(w, obj.Body)
 	return nil
 }

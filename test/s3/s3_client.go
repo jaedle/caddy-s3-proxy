@@ -1,6 +1,7 @@
 package s3test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -38,8 +39,17 @@ func (s *S3Test) Put(t *testing.T, obj Object) {
 	_, err := s.S3Client.PutObject(t.Context(), &s3.PutObjectInput{
 		Bucket: aws.String(obj.bucket),
 		Key:    aws.String(obj.key),
+		Body:   toReader(obj.content),
 	})
 	require.NoError(t, err)
+}
+
+func toReader(s *string) *strings.Reader {
+	if s == nil {
+		return strings.NewReader("")
+	}
+
+	return strings.NewReader(*s)
 }
 
 func (s *S3Test) ABucket(t *testing.T) string {

@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +14,8 @@ import (
 
 const anHtmlFilename = "some.html"
 const anotherHtmlFilename = "another.html"
+
+const anHtmlFileContent = "<html></html>"
 
 type handlerTestSuite struct {
 	suite.Suite
@@ -38,11 +41,14 @@ func (s *handlerTestSuite) TearDownTest() {
 }
 
 func (s *handlerTestSuite) TestServesFile() {
-	s.givenAnObject(s.obj(anHtmlFilename))
+	s.givenAnObject(
+		s.obj(anHtmlFilename).Content(anHtmlFileContent),
+	)
 
 	res := s.do(httptest.NewRequest("GET", "/"+anHtmlFilename, nil))
 
 	s.Equal(http.StatusOK, res.StatusCode)
+	s.Equal([]byte(anHtmlFileContent), body(res, s))
 }
 
 func (s *handlerTestSuite) givenAnObject(obj s3test.Object) {
@@ -59,6 +65,12 @@ func (s *handlerTestSuite) TestNotFound() {
 	res := s.do(httptest.NewRequest("GET", "/"+anotherHtmlFilename, nil))
 
 	s.Equal(http.StatusNotFound, res.StatusCode)
+}
+
+func body(res *http.Response, s *handlerTestSuite) []byte {
+	all, err := io.ReadAll(res.Body)
+	s.Require().NoError(err)
+	return all
 }
 
 func (s *handlerTestSuite) do(req *http.Request) *http.Response {
