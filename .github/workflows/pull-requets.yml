@@ -13,6 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: jdx/mise-action@v2
+      - run: task world
       - if: ${{ failure() }}
         run: ci/export-docker-logs.sh
       - if: ${{ failure() }}
