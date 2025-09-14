@@ -9,6 +9,7 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/jaedle/caddy-s3-proxy/internal"
 	s3test "github.com/jaedle/caddy-s3-proxy/test/s3"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -65,6 +66,26 @@ func (s *handlerTestSuite) TestNotFound() {
 	res := s.do(httptest.NewRequest("GET", "/"+anotherHtmlFilename, nil))
 
 	s.Equal(http.StatusNotFound, res.StatusCode)
+}
+
+func (s *handlerTestSuite) TestDeniesNotAllowedMethods() {
+	notAllowed := []string{
+		http.MethodConnect,
+		http.MethodDelete,
+		http.MethodHead,
+		http.MethodOptions,
+		http.MethodPatch,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodTrace,
+	}
+
+	for _, m := range notAllowed {
+		s.T().Run(m, func(t *testing.T) {
+			res := s.do(httptest.NewRequest(m, "/", nil))
+			assert.Equal(t, http.StatusMethodNotAllowed, res.StatusCode)
+		})
+	}
 }
 
 func body(res *http.Response, s *handlerTestSuite) []byte {

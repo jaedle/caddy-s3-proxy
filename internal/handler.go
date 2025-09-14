@@ -28,6 +28,11 @@ type handler struct {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.Handler) error {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return nil
+	}
+
 	obj, err := h.S3Client.GetObject(r.Context(), &s3.GetObjectInput{
 		Bucket: aws.String(h.bucket),
 		Key:    aws.String(strings.TrimPrefix(r.URL.Path, "/")),
