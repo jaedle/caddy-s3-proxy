@@ -11,6 +11,11 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 )
 
+const headerContentLength = "Content-Length"
+const headerContentType = "Content-Type"
+const headerIfNoneMatch = "If-None-Match"
+const headerEtag = "Etag"
+
 func New(c Config) caddyhttp.MiddlewareHandler {
 	return &handler{
 		bucket:   c.Bucket,
@@ -29,11 +34,10 @@ type handler struct {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.Handler) error {
-	if r.Method != http.MethodGet {
+	if !h.isAllowedMethod(r) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return nil
 	}
-
 	obj, err := h.S3Client.GetObject(r.Context(), &s3.GetObjectInput{
 		Bucket: aws.String(h.bucket),
 		Key:    aws.String(strings.TrimPrefix(r.URL.Path, "/")),
@@ -45,11 +49,35 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 	if obj == nil {
 		return nil
 	}
-
-	w.Header().Set("Content-Length", strconv.FormatInt(aws.ToInt64(obj.ContentLength), 10))
-	w.Header().Set("Content-Type", aws.ToString(obj.ContentType))
-
 	defer func() { _ = obj.Body.Close() }()
-	_, _ = io.Copy(w, obj.Body)
+
+	if cacheHit(r, obj) {
+		h.notModified(w, obj)
+	} else {
+		h.Ok(w, obj)
+	}
+
 	return nil
+}
+
+func cacheHit(r *http.Request, obj *s3.GetObjectOutput) bool {
+	return r.Header.Get(headerIfNoneMatch) == aws.ToString(obj.ETag)
+}
+
+func (h *handler) notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
+	w.Header().Set(headerContentType, aws.ToString(obj.ContentType))
+	w.Header().Set(headerEtag, aws.ToString(obj.ETag))
+
+	w.WriteHeader(http.StatusNotModified)
+}
+
+func (h *handler) Ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
+	w.Header().Set(headerContentLength, strconv.FormatInt(aws.ToInt64(obj.ContentLength), 10))
+	w.Header().Set(headerContentType, aws.ToString(obj.ContentType))
+	w.Header().Set(headerEtag, aws.ToString(obj.ETag))
+	_, _ = io.Copy(w, obj.Body)
+}
+
+func (h *handler) isAllowedMethod(r *http.Request) bool {
+	return r.Method == http.MethodGet
 }

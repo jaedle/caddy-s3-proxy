@@ -14,6 +14,7 @@ func (s *handlerTestSuite) TestNotFound() {
 	res := s.do(httptest.NewRequest("GET", "/"+anotherHtmlFilename, nil))
 
 	s.Equal(http.StatusNotFound, res.StatusCode)
+	s.noBody(res)
 }
 
 func (s *handlerTestSuite) TestDeniesNotAllowedMethods() {

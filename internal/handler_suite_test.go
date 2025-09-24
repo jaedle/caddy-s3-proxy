@@ -17,6 +17,13 @@ const anotherHtmlFilename = "another.html"
 
 const anHtmlFileContent = "<html></html>"
 
+const contentTypeTextHtml = "text/html"
+
+const headerContentType = "Content-Type"
+const headerContentLength = "Content-Length"
+const headerIfNoneMatch = "If-None-Match"
+const headerEtag = "Etag"
+
 type handlerTestSuite struct {
 	suite.Suite
 	VariableThatShouldStartAtFive int
@@ -48,7 +55,7 @@ func (s *handlerTestSuite) obj(key string) s3test.Object {
 	return s3test.Obj(s.bucket, key)
 }
 
-func body(res *http.Response, s *handlerTestSuite) []byte {
+func (s *handlerTestSuite) body(res *http.Response) []byte {
 	all, err := io.ReadAll(res.Body)
 	s.Require().NoError(err)
 	return all
@@ -58,6 +65,22 @@ func (s *handlerTestSuite) do(req *http.Request) *http.Response {
 	res := httptest.NewRecorder()
 	s.Require().NoError(s.handler.ServeHTTP(res, req, nil))
 	return res.Result()
+}
+
+func (s *handlerTestSuite) expectHeaderEqual(res *http.Response, expected string, name string) bool {
+	return s.Equal(expected, res.Header.Get(name))
+}
+
+func (s *handlerTestSuite) expectHeaderPresent(res *http.Response, name string) {
+	s.NotEmpty(res.Header.Get(name))
+}
+
+func (s *handlerTestSuite) expectHeaderNotPresent(res *http.Response, name string) {
+	s.Empty(res.Header.Get(name))
+}
+
+func (s *handlerTestSuite) noBody(res *http.Response) {
+	s.Empty(s.body(res))
 }
 
 func TestExampleTestSuite(t *testing.T) {

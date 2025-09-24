@@ -8,13 +8,46 @@ import (
 
 func (s *handlerTestSuite) TestServesContent() {
 	s.givenAnObject(
-		s.obj(anHtmlFilename).Content(anHtmlFileContent).ContentType("text/html"),
+		s.obj(anHtmlFilename).Content(anHtmlFileContent).ContentType(contentTypeTextHtml),
 	)
 
-	res := s.do(httptest.NewRequest("GET", "/"+anHtmlFilename, nil))
+	res := s.do(httptest.NewRequest(http.MethodGet, "/"+anHtmlFilename, nil))
 
 	s.Equal(http.StatusOK, res.StatusCode)
-	s.Equal("text/html", res.Header.Get("Content-Type"))
-	s.Equal(fmt.Sprintf("%d", len(anHtmlFileContent)), res.Header.Get("Content-Length"))
-	s.Equal([]byte(anHtmlFileContent), body(res, s))
+	s.expectHeaderEqual(res, contentTypeTextHtml, headerContentType)
+	s.expectHeaderEqual(res, fmt.Sprintf("%d", len(anHtmlFileContent)), headerContentLength)
+	s.expectHeaderPresent(res, headerEtag)
+	s.Equal([]byte(anHtmlFileContent), s.body(res))
+}
+
+func (s *handlerTestSuite) TestCachesByEtag() {
+	s.givenAnObject(
+		s.obj(anHtmlFilename).ContentType(contentTypeTextHtml).Content(anHtmlFileContent),
+	)
+
+	res := s.do(httptest.NewRequest(http.MethodGet, "/"+anHtmlFilename, nil))
+	etag := res.Header.Get(headerEtag)
+
+	req := httptest.NewRequest(http.MethodGet, "/"+anHtmlFilename, nil)
+	req.Header.Set(headerIfNoneMatch, etag)
+	res = s.do(req)
+
+	s.Equal(http.StatusNotModified, res.StatusCode)
+	s.Equal(etag, res.Header.Get(headerEtag))
+	s.expectHeaderEqual(res, contentTypeTextHtml, headerContentType)
+	s.expectHeaderNotPresent(res, headerContentLength)
+	s.noBody(res)
+}
+
+func (s *handlerTestSuite) TestServesFileOnEtagMismatch() {
+	s.givenAnObject(
+		s.obj(anHtmlFilename).Content(anHtmlFileContent),
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/"+anHtmlFilename, nil)
+	req.Header.Set(headerIfNoneMatch, "anything-that-does-not-match")
+	res := s.do(req)
+
+	s.Equal(http.StatusOK, res.StatusCode)
+	s.Equal([]byte(anHtmlFileContent), s.body(res))
 }
