@@ -15,6 +15,7 @@ const headerContentLength = "Content-Length"
 const headerContentType = "Content-Type"
 const headerIfNoneMatch = "If-None-Match"
 const headerEtag = "Etag"
+const headerCacheControl = "Cache-Control"
 
 func New(c Config) caddyhttp.MiddlewareHandler {
 	return &handler{
@@ -65,17 +66,23 @@ func cacheHit(r *http.Request, obj *s3.GetObjectOutput) bool {
 }
 
 func (h *handler) notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
-	w.Header().Set(headerContentType, aws.ToString(obj.ContentType))
-	w.Header().Set(headerEtag, aws.ToString(obj.ETag))
-
+	setCommonHeaders(w, obj)
 	w.WriteHeader(http.StatusNotModified)
 }
 
 func (h *handler) Ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
+	setCommonHeaders(w, obj)
 	w.Header().Set(headerContentLength, strconv.FormatInt(aws.ToInt64(obj.ContentLength), 10))
+
+	_, _ = io.Copy(w, obj.Body)
+}
+
+func setCommonHeaders(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	w.Header().Set(headerContentType, aws.ToString(obj.ContentType))
 	w.Header().Set(headerEtag, aws.ToString(obj.ETag))
-	_, _ = io.Copy(w, obj.Body)
+	if aws.ToString(obj.CacheControl) != "" {
+		w.Header().Set(headerCacheControl, aws.ToString(obj.CacheControl))
+	}
 }
 
 func (h *handler) isAllowedMethod(r *http.Request) bool {

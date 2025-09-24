@@ -5,10 +5,11 @@ import "github.com/aws/aws-sdk-go-v2/aws"
 const anyContentType = "application/octet-stream"
 
 type Object struct {
-	bucket      string
-	key         string
-	content     *string
-	contentType *string
+	bucket       string
+	key          string
+	content      *string
+	contentType  *string
+	cacheControl *string
 }
 
 func Obj(bucket string, key string) Object {
@@ -26,5 +27,10 @@ func (o Object) Content(s string) Object {
 
 func (o Object) ContentType(ct string) Object {
 	o.contentType = &ct
+	return o
+}
+
+func (o Object) CacheControl(cc string) Object {
+	o.cacheControl = &cc
 	return o
 }

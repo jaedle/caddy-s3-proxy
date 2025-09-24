@@ -23,6 +23,9 @@ const headerContentType = "Content-Type"
 const headerContentLength = "Content-Length"
 const headerIfNoneMatch = "If-None-Match"
 const headerEtag = "Etag"
+const headerCacheControl = "Cache-Control"
+
+const aCacheDirective = "public, max-age=3600"
 
 type handlerTestSuite struct {
 	suite.Suite
