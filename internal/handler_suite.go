@@ -53,7 +53,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 	defer func() { _ = obj.Body.Close() }()
 
 	if cacheHit(r, obj) {
-		h.notModified(w, obj)
+		notModified(w, obj)
 	} else {
 		h.Ok(w, obj)
 	}
@@ -65,7 +65,7 @@ func cacheHit(r *http.Request, obj *s3.GetObjectOutput) bool {
 	return r.Header.Get(headerIfNoneMatch) == aws.ToString(obj.ETag)
 }
 
-func (h *handler) notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
+func notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	setCommonHeaders(w, obj)
 	w.WriteHeader(http.StatusNotModified)
 }
