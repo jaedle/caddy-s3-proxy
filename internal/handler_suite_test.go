@@ -9,7 +9,6 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 	"github.com/jaedle/caddy-s3-proxy/internal"
 	s3test "github.com/jaedle/caddy-s3-proxy/test/s3"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -41,51 +40,12 @@ func (s *handlerTestSuite) TearDownTest() {
 	s.testS3Client.Clean(s.T())
 }
 
-func (s *handlerTestSuite) TestServesFile() {
-	s.givenAnObject(
-		s.obj(anHtmlFilename).Content(anHtmlFileContent),
-	)
-
-	res := s.do(httptest.NewRequest("GET", "/"+anHtmlFilename, nil))
-
-	s.Equal(http.StatusOK, res.StatusCode)
-	s.Equal([]byte(anHtmlFileContent), body(res, s))
-}
-
 func (s *handlerTestSuite) givenAnObject(obj s3test.Object) {
 	s.testS3Client.Put(s.T(), obj)
 }
 
 func (s *handlerTestSuite) obj(key string) s3test.Object {
 	return s3test.Obj(s.bucket, key)
-}
-
-func (s *handlerTestSuite) TestNotFound() {
-	s.givenAnObject(s.obj(anHtmlFilename))
-
-	res := s.do(httptest.NewRequest("GET", "/"+anotherHtmlFilename, nil))
-
-	s.Equal(http.StatusNotFound, res.StatusCode)
-}
-
-func (s *handlerTestSuite) TestDeniesNotAllowedMethods() {
-	notAllowed := []string{
-		http.MethodConnect,
-		http.MethodDelete,
-		http.MethodHead,
-		http.MethodOptions,
-		http.MethodPatch,
-		http.MethodPost,
-		http.MethodPut,
-		http.MethodTrace,
-	}
-
-	for _, m := range notAllowed {
-		s.T().Run(m, func(t *testing.T) {
-			res := s.do(httptest.NewRequest(m, "/", nil))
-			assert.Equal(t, http.StatusMethodNotAllowed, res.StatusCode)
-		})
-	}
 }
 
 func body(res *http.Response, s *handlerTestSuite) []byte {

@@ -3,6 +3,7 @@ package internal
 import (
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -44,6 +45,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 	if obj == nil {
 		return nil
 	}
+
+	w.Header().Set("Content-Length", strconv.FormatInt(aws.ToInt64(obj.ContentLength), 10))
+	w.Header().Set("Content-Type", aws.ToString(obj.ContentType))
 
 	defer func() { _ = obj.Body.Close() }()
 	_, _ = io.Copy(w, obj.Body)

@@ -37,9 +37,10 @@ func New() S3Test {
 
 func (s *S3Test) Put(t *testing.T, obj Object) {
 	_, err := s.S3Client.PutObject(t.Context(), &s3.PutObjectInput{
-		Bucket: aws.String(obj.bucket),
-		Key:    aws.String(obj.key),
-		Body:   toReader(obj.content),
+		Bucket:      aws.String(obj.bucket),
+		Key:         aws.String(obj.key),
+		Body:        toReader(obj.content),
+		ContentType: obj.contentType,
 	})
 	require.NoError(t, err)
 }
