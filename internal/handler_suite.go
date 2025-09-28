@@ -53,7 +53,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 	if isCacheHit(r, obj) {
 		notModified(w, obj)
 	} else {
-		h.Ok(w, obj)
+		ok(w, obj)
 	}
 
 	return nil
@@ -72,7 +72,7 @@ func notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	w.WriteHeader(http.StatusNotModified)
 }
 
-func (h *handler) Ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
+func ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	setCommonHeaders(w, obj)
 	w.Header().Set(headerContentLength, strconv.FormatInt(aws.ToInt64(obj.ContentLength), 10))
 
