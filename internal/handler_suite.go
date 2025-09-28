@@ -56,11 +56,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 
 	if isCacheHit(r, obj) {
 		notModified(w, obj)
+		return nil
 	} else {
-		ok(w, obj)
+		return ok(w, obj)
 	}
-
-	return nil
 }
 
 func isAllowedMethod(r *http.Request) bool {
@@ -83,11 +82,12 @@ func notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	w.WriteHeader(http.StatusNotModified)
 }
 
-func ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
+func ok(w http.ResponseWriter, obj *s3.GetObjectOutput) error {
 	setCommonHeaders(w, obj)
 	w.Header().Set(headerContentLength, strconv.FormatInt(aws.ToInt64(obj.ContentLength), 10))
 
-	_, _ = io.Copy(w, obj.Body)
+	_, err := io.Copy(w, obj.Body)
+	return err
 }
 
 func setCommonHeaders(w http.ResponseWriter, obj *s3.GetObjectOutput) {

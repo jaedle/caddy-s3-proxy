@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const tenMegabyte = 10 * 1024 * 1024
+
 func (s *handlerTestSuite) TestServesContent() {
 	s.givenAnObject(
 		s.obj(anHtmlFilename).Content(anHtmlFileContent).ContentType(contentTypeTextHtml),
@@ -137,4 +139,24 @@ func (s *handlerTestSuite) TestServesFileOnLastModifiedMismatch() {
 
 	s.Equal(http.StatusOK, res.StatusCode)
 	s.Equal([]byte(anHtmlFileContent), s.body(res))
+}
+
+func (s *handlerTestSuite) TestWorksWithBigFiles() {
+	content := aStringWithLength(tenMegabyte)
+	s.givenAnObject(
+		s.obj("test.txt").Content(content),
+	)
+
+	res := s.do(httptest.NewRequest(http.MethodGet, "/"+"test.txt", nil))
+
+	s.Equal(http.StatusOK, res.StatusCode)
+	s.Equal([]byte(content), s.body(res))
+}
+
+func aStringWithLength(len int) string {
+	b := make([]byte, len)
+	for i := range b {
+		b[i] = 'a' + byte(i%26)
+	}
+	return string(b)
 }
