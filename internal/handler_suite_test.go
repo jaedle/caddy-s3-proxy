@@ -19,12 +19,15 @@ const anHtmlFileContent = "<html></html>"
 
 const contentTypeTextHtml = "text/html"
 
-const headerContentType = "Content-Type"
-const headerContentLength = "Content-Length"
-const headerIfNoneMatch = "If-None-Match"
-const headerEtag = "Etag"
-const headerCacheControl = "Cache-Control"
-const headerLastModified = "Last-Modified"
+const (
+	headerContentType   = "Content-Type"
+	headerContentLength = "Content-Length"
+	headerIfNoneMatch   = "If-None-Match"
+	headerEtag          = "Etag"
+	headerCacheControl  = "Cache-Control"
+	headerLastModified  = "Last-Modified"
+	headerModifiedSince = "If-Modified-Since"
+)
 
 const aCacheDirective = "public, max-age=3600"
 

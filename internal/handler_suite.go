@@ -11,12 +11,15 @@ import (
 	"github.com/caddyserver/caddy/v2/modules/caddyhttp"
 )
 
-const headerContentLength = "Content-Length"
-const headerContentType = "Content-Type"
-const headerIfNoneMatch = "If-None-Match"
-const headerEtag = "Etag"
-const headerLastModified = "Last-Modified"
-const headerCacheControl = "Cache-Control"
+const (
+	headerContentLength = "Content-Length"
+	headerContentType   = "Content-Type"
+	headerIfNoneMatch   = "If-None-Match"
+	headerEtag          = "Etag"
+	headerLastModified  = "Last-Modified"
+	headerCacheControl  = "Cache-Control"
+	headerModifiedSince = "If-Modified-Since"
+)
 
 func New(c Config) caddyhttp.MiddlewareHandler {
 	return &handler{
@@ -65,7 +68,14 @@ func isAllowedMethod(r *http.Request) bool {
 }
 
 func isCacheHit(r *http.Request, obj *s3.GetObjectOutput) bool {
-	return r.Header.Get(headerIfNoneMatch) == aws.ToString(obj.ETag)
+	switch {
+	case r.Header.Get(headerIfNoneMatch) == aws.ToString(obj.ETag):
+		return true
+	case r.Header.Get(headerModifiedSince) == obj.LastModified.Format(http.TimeFormat):
+		return true
+	default:
+		return false
+	}
 }
 
 func notModified(w http.ResponseWriter, obj *s3.GetObjectOutput) {
