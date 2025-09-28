@@ -3,7 +3,9 @@
 package integration_test
 
 import (
+	"bytes"
 	"net/http"
+	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -17,6 +19,7 @@ import (
 type integrationSuite struct {
 	suite.Suite
 	s3testClient s3test.S3Test
+	caddyCmd     *exec.Cmd
 }
 
 func (s *integrationSuite) SetupSuite() {
@@ -28,9 +31,10 @@ func (s *integrationSuite) SetupSuite() {
 	})
 	s.Require().NoError(err)
 
-	s3.NewBucketExistsWaiter(s.s3testClient.S3Client).Wait(s.T().Context(), &s3.HeadBucketInput{
+	err = s3.NewBucketExistsWaiter(s.s3testClient.S3Client).Wait(s.T().Context(), &s3.HeadBucketInput{
 		Bucket: aws.String("example-bucket"),
 	}, 5*time.Second)
+	s.Require().NoError(err)
 }
 
 func (s *integrationSuite) TearDown() {
@@ -51,17 +55,22 @@ func (s *integrationSuite) TestWorks() {
 const startupTimeout = 3 * time.Second
 
 func (s *integrationSuite) startCaddy() {
-	command := exec.Command("build/caddy", "start")
+	out := new(bytes.Buffer)
+	command := exec.Command("build/caddy", "run")
 	command.Dir = "../../example"
-	command.Env = []string{
+	command.Env = append(os.Environ(), []string{
 		"AWS_ACCESS_KEY_ID=test",
 		"AWS_SECRET_ACCESS_KEY=test",
 		"AWS_REGION=us-east-1",
 		"AWS_DEFAULT_REGION=us-east-1",
-	}
-	err := command.Run()
+	}...)
+	command.Stdout = out
+	command.Stderr = out
+
+	err := command.Start()
 	s.Require().NoError(err)
 
+	s.caddyCmd = command
 	s.waitForCaddy()
 }
 
@@ -85,10 +94,14 @@ func (s *integrationSuite) waitForCaddy() {
 }
 
 func (s *integrationSuite) stopCaddy() {
-	command := exec.Command("build/caddy", "stop")
-	command.Dir = "../../example"
-	err := command.Run()
-	s.Require().NoError(err)
+	if s.caddyCmd == nil {
+		return
+	}
+
+	s.Require().NoError(s.caddyCmd.Process.Kill())
+	s.Require().NoError(s.caddyCmd.Wait())
+
+	s.caddyCmd = nil
 }
 
 func TestIntegrationSuite(t *testing.T) {
