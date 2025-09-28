@@ -35,7 +35,7 @@ type handler struct {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.Handler) error {
-	if !h.isAllowedMethod(r) {
+	if !isAllowedMethod(r) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return nil
 	}
@@ -47,12 +47,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 		w.WriteHeader(http.StatusNotFound)
 		return nil
 	}
-	if obj == nil {
-		return nil
-	}
+
 	defer func() { _ = obj.Body.Close() }()
 
-	if cacheHit(r, obj) {
+	if isCacheHit(r, obj) {
 		notModified(w, obj)
 	} else {
 		h.Ok(w, obj)
@@ -61,7 +59,11 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request, _ caddyhttp.
 	return nil
 }
 
-func cacheHit(r *http.Request, obj *s3.GetObjectOutput) bool {
+func isAllowedMethod(r *http.Request) bool {
+	return r.Method == http.MethodGet
+}
+
+func isCacheHit(r *http.Request, obj *s3.GetObjectOutput) bool {
 	return r.Header.Get(headerIfNoneMatch) == aws.ToString(obj.ETag)
 }
 
@@ -83,8 +85,4 @@ func setCommonHeaders(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	if aws.ToString(obj.CacheControl) != "" {
 		w.Header().Set(headerCacheControl, aws.ToString(obj.CacheControl))
 	}
-}
-
-func (h *handler) isAllowedMethod(r *http.Request) bool {
-	return r.Method == http.MethodGet
 }
