@@ -82,7 +82,8 @@ func ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 func setCommonHeaders(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	w.Header().Set(headerContentType, aws.ToString(obj.ContentType))
 	w.Header().Set(headerEtag, aws.ToString(obj.ETag))
-	if aws.ToString(obj.CacheControl) != "" {
-		w.Header().Set(headerCacheControl, aws.ToString(obj.CacheControl))
+
+	if cacheControl := aws.ToString(obj.CacheControl); len(cacheControl) > 0 {
+		w.Header().Set(headerCacheControl, cacheControl)
 	}
 }
