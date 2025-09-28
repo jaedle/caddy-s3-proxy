@@ -15,6 +15,7 @@ const headerContentLength = "Content-Length"
 const headerContentType = "Content-Type"
 const headerIfNoneMatch = "If-None-Match"
 const headerEtag = "Etag"
+const headerLastModified = "Last-Modified"
 const headerCacheControl = "Cache-Control"
 
 func New(c Config) caddyhttp.MiddlewareHandler {
@@ -82,6 +83,7 @@ func ok(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 func setCommonHeaders(w http.ResponseWriter, obj *s3.GetObjectOutput) {
 	w.Header().Set(headerContentType, aws.ToString(obj.ContentType))
 	w.Header().Set(headerEtag, aws.ToString(obj.ETag))
+	w.Header().Set(headerLastModified, obj.LastModified.Format(http.TimeFormat))
 
 	if cacheControl := aws.ToString(obj.CacheControl); len(cacheControl) > 0 {
 		w.Header().Set(headerCacheControl, cacheControl)

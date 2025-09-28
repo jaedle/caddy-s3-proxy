@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 func (s *handlerTestSuite) TestServesContent() {
@@ -17,7 +18,21 @@ func (s *handlerTestSuite) TestServesContent() {
 	s.expectHeaderEqual(res, contentTypeTextHtml, headerContentType)
 	s.expectHeaderEqual(res, fmt.Sprintf("%d", len(anHtmlFileContent)), headerContentLength)
 	s.expectHeaderPresent(res, headerEtag)
+	s.expectHeaderPresent(res, headerLastModified)
 	s.Equal([]byte(anHtmlFileContent), s.body(res))
+}
+
+func (s *handlerTestSuite) TestServesLastModifiedAsTimestamp() {
+	s.givenAnObject(
+		s.obj(anHtmlFilename),
+	)
+
+	res := s.do(httptest.NewRequest(http.MethodGet, "/"+anHtmlFilename, nil))
+
+	s.Equal(http.StatusOK, res.StatusCode)
+	lastModified := res.Header.Get(headerLastModified)
+	_, err := time.Parse(http.TimeFormat, lastModified)
+	s.NoError(err, "must return a valid HTTP timestamp")
 }
 
 func (s *handlerTestSuite) TestCachesByEtag() {
@@ -36,6 +51,7 @@ func (s *handlerTestSuite) TestCachesByEtag() {
 	s.Equal(etag, res.Header.Get(headerEtag))
 	s.expectHeaderEqual(res, contentTypeTextHtml, headerContentType)
 	s.expectHeaderNotPresent(res, headerContentLength)
+	s.expectHeaderPresent(res, headerLastModified)
 	s.noBody(res)
 }
 

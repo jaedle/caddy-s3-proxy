@@ -24,6 +24,7 @@ const headerContentLength = "Content-Length"
 const headerIfNoneMatch = "If-None-Match"
 const headerEtag = "Etag"
 const headerCacheControl = "Cache-Control"
+const headerLastModified = "Last-Modified"
 
 const aCacheDirective = "public, max-age=3600"
 
