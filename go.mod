@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.39.3
 	github.com/aws/aws-sdk-go-v2/config v1.31.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.18.18
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.5
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.88.6
 	github.com/caddyserver/caddy/v2 v2.10.2
 	github.com/google/uuid v1.6.0
 	github.com/stretchr/testify v1.11.1
